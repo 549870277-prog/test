@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="高达机体部件三维交互介绍" />
+  <title>高达机体介绍 | 3D 部件档案</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- importmap 让浏览器直接从 CDN 加载 ES Module，无需 npm 或打包工具。 -->
+  <script type="importmap">
+    { "imports": {
+      "three": "https://unpkg.com/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.180.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <main class="app-shell">
+    <canvas id="webgl-canvas" aria-label="可交互的高达三维模型"></canvas>
+    <div class="background-grid" aria-hidden="true"></div>
+    <header class="topbar glass-panel">
+      <div><p class="eyebrow">MOBILE SUIT / SYSTEM ARCHIVE</p><h1>高达机体介绍</h1><p class="subtitle">拖动巡视机体结构，点击装甲模块查看战术档案</p></div>
+      <div class="status"><i></i><span id="model-status">初始化中</span></div>
+    </header>
+    <aside class="info-panel glass-panel" aria-live="polite">
+      <p class="panel-kicker">COMPONENT DATA</p><h2 id="part-name">等待选择部件</h2>
+      <p id="part-description" class="part-description">点击机体或下方部件列表，查看模块说明、装备与性能数据。</p>
+      <dl id="part-specs" class="spec-list"><div><dt>状态</dt><dd>待机</dd></div></dl><p id="match-note" class="match-note"></p><p id="view-mode" class="view-mode">全机预览模式</p>
+    </aside>
+    <nav class="view-actions" aria-label="视图控制">
+      <button id="auto-rotate-button" class="action-button" type="button" aria-pressed="false">自动旋转：关</button>
+      <button id="reset-view-button" class="action-button" type="button">显示完整机体</button>
+    </nav>
+    <section class="parts-dock glass-panel" aria-label="机体部件列表">
+      <div class="dock-heading"><span>部件索引</span><small id="part-count">0 个模块</small></div><div id="parts-list" class="parts-list"></div>
+    </section>
+    <p class="controls-hint">鼠标左键旋转 / 滚轮缩放 / 右键平移<br>点击索引可单独展示部件，点击空白恢复全机</p>
+    <div id="loading-overlay" class="loading-overlay" role="status" aria-live="polite">
+      <div class="loader-card glass-panel"><p class="panel-kicker">MOBILE SUIT LOADER</p><strong id="loading-text">正在连接机库…</strong><div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div><small id="loading-detail">准备加载 assets/model.glb</small></div>
+    </div>
+  </main>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
