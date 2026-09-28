@@ -10,7 +10,8 @@
   <script type="importmap">
     { "imports": {
       "three": "https://unpkg.com/three@0.180.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.180.0/examples/jsm/"
+      "three/addons/": "https://unpkg.com/three@0.180.0/examples/jsm/",
+      "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
     } }
   </script>
 </head>
@@ -31,6 +32,28 @@
       <button id="auto-rotate-button" class="action-button" type="button" aria-pressed="false">自动旋转：关</button>
       <button id="reset-view-button" class="action-button" type="button">显示完整机体</button>
     </nav>
+
+    <aside class="social-panel glass-panel" aria-live="polite">
+      <p class="panel-kicker">COMMUNITY CONSOLE</p>
+      <div class="engagement-row">
+        <button id="like-button" class="like-button" type="button" disabled aria-pressed="false"><span aria-hidden="true">♥</span> <b>点赞</b></button>
+        <strong id="like-count" class="engagement-count">--</strong>
+        <button id="share-button" class="share-button" type="button" disabled>分享链接</button>
+      </div>
+      <p id="community-status" class="community-status">正在连接社区服务…</p>
+      <div class="ranking-header"><span>人气排行榜</span><small>按点赞与评论排序</small></div>
+      <ol id="ranking-list" class="ranking-list"><li>加载中…</li></ol>
+    </aside>
+
+    <aside class="comments-panel glass-panel">
+      <div class="comments-heading"><div><p class="panel-kicker">PILOT LOGS</p><h2>评论终端</h2></div><span id="comment-count">0 条</span></div>
+      <form id="comment-form" class="comment-form">
+        <label>昵称<input id="comment-name" name="displayName" maxlength="24" placeholder="机师代号" required /></label>
+        <label>留言<textarea id="comment-content" name="content" maxlength="300" placeholder="留下你对这台机体的看法…" required></textarea></label>
+        <button id="comment-submit" type="submit" disabled>发送评论</button>
+      </form>
+      <div id="comments-list" class="comments-list"><p class="empty-comments">正在读取评论…</p></div>
+    </aside>
     <section class="parts-dock glass-panel" aria-label="机体部件列表">
       <div class="dock-heading"><span>部件索引</span><small id="part-count">0 个模块</small></div><div id="parts-list" class="parts-list"></div>
     </section>

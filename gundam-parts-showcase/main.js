@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { partsData } from './parts.js';
+import { supabase, modelSlug } from './supabase-config.js';
 
 const canvas = document.querySelector('#webgl-canvas');
 const ui = {
@@ -9,7 +10,11 @@ const ui = {
   loadingText: document.querySelector('#loading-text'), loadingDetail: document.querySelector('#loading-detail'), progress: document.querySelector('#progress-bar'),
   list: document.querySelector('#parts-list'), count: document.querySelector('#part-count'), title: document.querySelector('#part-name'),
   description: document.querySelector('#part-description'), specs: document.querySelector('#part-specs'), note: document.querySelector('#match-note'), viewMode: document.querySelector('#view-mode'),
-  autoRotate: document.querySelector('#auto-rotate-button'), reset: document.querySelector('#reset-view-button')
+  autoRotate: document.querySelector('#auto-rotate-button'), reset: document.querySelector('#reset-view-button'),
+  likeButton: document.querySelector('#like-button'), likeCount: document.querySelector('#like-count'), shareButton: document.querySelector('#share-button'),
+  communityStatus: document.querySelector('#community-status'), rankingList: document.querySelector('#ranking-list'),
+  commentForm: document.querySelector('#comment-form'), commentName: document.querySelector('#comment-name'), commentContent: document.querySelector('#comment-content'),
+  commentSubmit: document.querySelector('#comment-submit'), commentsList: document.querySelector('#comments-list'), commentCount: document.querySelector('#comment-count')
 };
 
 const scene = new THREE.Scene();
@@ -29,6 +34,7 @@ const rimLight = new THREE.DirectionalLight(0xff4964, 2.3); rimLight.position.se
 const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2();
 const originalMaterials = new Map(); const partObjects = new Map(); const partButtons = new Map();
 let modelRoot = null, selectedMeshes = [], initialView = null, focusAnimation = null, pointerDown = null, isolatedPart = null;
+let activePart = null, currentModel = null, currentUser = null, isLiked = false, commentsChannel = null;
 
 function updateLoading(percent, message, detail) {
   ui.progress.style.width = `${Math.max(4, Math.min(100, percent))}%`;
@@ -85,6 +91,7 @@ function isolateMeshes(objects) {
 }
 function selectPart(part, { isolate = false } = {}) {
   const objects = partObjects.get(part) || []; clearHighlight();
+  activePart = part;
   if (isolate && objects.length) { isolateMeshes(objects); isolatedPart = part; ui.viewMode.textContent = `单独展示：${part.displayName}`; }
   else { restoreModelVisibility(); ui.viewMode.textContent = '全机预览模式'; }
   objects.forEach(mesh => { if (mesh.isMesh) { tintMesh(mesh, true); selectedMeshes.push(mesh); } });
@@ -95,7 +102,7 @@ function resetView() {
   focusAnimation = { fromPosition: camera.position.clone(), fromTarget: controls.target.clone(), toPosition: initialView.position.clone(), toTarget: initialView.target.clone(), start: performance.now(), duration: 800 };
 }
 function clearSelection() {
-  clearHighlight(); restoreModelVisibility(); setActiveButton(null); ui.title.textContent = '等待选择部件'; ui.description.textContent = '点击机体或下方部件列表，查看模块说明、装备与性能数据。';
+  clearHighlight(); restoreModelVisibility(); activePart = null; setActiveButton(null); ui.title.textContent = '等待选择部件'; ui.description.textContent = '点击机体或下方部件列表，查看模块说明、装备与性能数据。';
   ui.specs.innerHTML = '<div><dt>状态</dt><dd>待机</dd></div>'; ui.note.textContent = ''; resetView();
   ui.viewMode.textContent = '全机预览模式';
 }
@@ -137,10 +144,142 @@ function registerModel(root) {
     if (!meshes.length) console.warn(`parts.js 未匹配：${part.displayName}，期待节点名 “${part.name}”。请按控制台名称修改。`);
   });
 }
+
+// ---------- Supabase 社区功能：匿名身份、点赞、评论、排行与分享 ----------
+function setCommunityStatus(message, isError = false) {
+  ui.communityStatus.textContent = message;
+  ui.communityStatus.style.color = isError ? '#ff9aab' : '';
+}
+function formatDate(isoDate) {
+  return new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(isoDate));
+}
+function updateLikeButton() {
+  ui.likeButton.classList.toggle('active', isLiked);
+  ui.likeButton.setAttribute('aria-pressed', String(isLiked));
+  ui.likeButton.querySelector('b').textContent = isLiked ? '已点赞' : '点赞';
+}
+function renderRankings(rankings) {
+  ui.rankingList.replaceChildren();
+  rankings.forEach(row => {
+    const item = document.createElement('li');
+    if (row.id === currentModel?.id) item.classList.add('current');
+    const name = document.createElement('span'); name.textContent = row.name;
+    const counts = document.createElement('small'); counts.textContent = `${row.likes_count} 赞 · ${row.comments_count} 评`;
+    item.append(name, counts); ui.rankingList.append(item);
+  });
+  if (!rankings.length) ui.rankingList.innerHTML = '<li>暂无排行数据</li>';
+}
+async function loadRankings() {
+  const { data, error } = await supabase.rpc('get_model_rankings');
+  if (error) throw error;
+  renderRankings(data);
+  const row = data.find(item => item.id === currentModel.id);
+  ui.likeCount.textContent = row?.likes_count ?? '0';
+}
+async function loadMyLike() {
+  const { data, error } = await supabase.from('model_likes').select('id').eq('model_id', currentModel.id).maybeSingle();
+  if (error) throw error;
+  isLiked = Boolean(data); updateLikeButton();
+}
+function renderComments(comments) {
+  ui.commentsList.replaceChildren(); ui.commentCount.textContent = `${comments.length} 条`;
+  if (!comments.length) {
+    const empty = document.createElement('p'); empty.className = 'empty-comments'; empty.textContent = '还没有留言，成为第一位机师吧。'; ui.commentsList.append(empty); return;
+  }
+  comments.forEach(comment => {
+    const article = document.createElement('article'); article.className = 'comment-item';
+    const meta = document.createElement('div'); meta.className = 'comment-meta';
+    const author = document.createElement('strong'); author.textContent = comment.display_name;
+    const time = document.createElement('time'); time.dateTime = comment.created_at; time.textContent = formatDate(comment.created_at);
+    const text = document.createElement('p'); text.textContent = comment.content;
+    meta.append(author, time); article.append(meta, text); ui.commentsList.append(article);
+  });
+}
+async function loadComments() {
+  const { data, error } = await supabase.from('comments').select('id, display_name, content, created_at').eq('model_id', currentModel.id).order('created_at', { ascending: false }).limit(50);
+  if (error) throw error;
+  renderComments(data);
+}
+function subscribeToComments() {
+  if (commentsChannel) supabase.removeChannel(commentsChannel);
+  commentsChannel = supabase.channel(`comments:${currentModel.id}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `model_id=eq.${currentModel.id}` }, async () => {
+      try { await Promise.all([loadComments(), loadRankings()]); } catch (error) { console.error('刷新实时评论失败', error); }
+    })
+    .subscribe(status => { if (status === 'SUBSCRIBED') setCommunityStatus('社区服务已连接 · 评论实时更新'); });
+}
+async function ensureAnonymousSession() {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+  if (session?.user) return session.user;
+  const { data, error } = await supabase.auth.signInAnonymously();
+  if (error) throw error;
+  return data.user;
+}
+async function setupCommunity() {
+  try {
+    setCommunityStatus('正在创建访客身份…');
+    currentUser = await ensureAnonymousSession();
+    const { data: model, error: modelError } = await supabase.from('models').select('id, slug, name').eq('slug', modelSlug).single();
+    if (modelError) throw modelError;
+    currentModel = model;
+    await Promise.all([loadMyLike(), loadComments(), loadRankings()]);
+    ui.likeButton.disabled = false; ui.shareButton.disabled = false; ui.commentSubmit.disabled = false;
+    setCommunityStatus('匿名机师身份已就绪'); subscribeToComments();
+  } catch (error) {
+    console.error('Supabase 社区功能初始化失败', error);
+    setCommunityStatus('社区服务连接失败，请稍后刷新重试。', true);
+  }
+}
+async function toggleLike() {
+  if (!currentModel) return;
+  ui.likeButton.disabled = true;
+  try {
+    const { data, error } = await supabase.rpc('toggle_model_like', { target_model_id: currentModel.id });
+    if (error) throw error;
+    isLiked = data; updateLikeButton(); await loadRankings();
+  } catch (error) {
+    console.error('点赞操作失败', error); setCommunityStatus('点赞失败，请稍后再试。', true);
+  } finally { ui.likeButton.disabled = false; }
+}
+async function submitComment(event) {
+  event.preventDefault();
+  if (!currentModel || !currentUser) return;
+  const displayName = ui.commentName.value.trim(); const content = ui.commentContent.value.trim();
+  if (!displayName || !content) return;
+  ui.commentSubmit.disabled = true;
+  try {
+    const { error } = await supabase.from('comments').insert({ model_id: currentModel.id, display_name: displayName, content });
+    if (error) throw error;
+    ui.commentContent.value = ''; await Promise.all([loadComments(), loadRankings()]);
+    setCommunityStatus('评论已发送');
+  } catch (error) {
+    console.error('发送评论失败', error);
+    setCommunityStatus(error.message.includes('30 秒') ? error.message : '评论发送失败，请稍后再试。', true);
+  } finally { ui.commentSubmit.disabled = false; }
+}
+async function shareCurrentView() {
+  const url = new URL(location.href); url.searchParams.set('model', modelSlug);
+  if (activePart) url.searchParams.set('part', activePart.name); else url.searchParams.delete('part');
+  const shareData = { title: '翼装高达｜3D 部件档案', text: activePart ? `查看高达的「${activePart.displayName}」部件` : '查看这台高达的 3D 部件档案', url: url.href };
+  try {
+    if (navigator.share) await navigator.share(shareData);
+    else { await navigator.clipboard.writeText(url.href); setCommunityStatus('分享链接已复制，可直接发送给朋友。'); }
+  } catch (error) {
+    // 用户主动关闭系统分享面板时，不需要显示错误。
+    if (error.name !== 'AbortError') { console.error('生成分享链接失败', error); setCommunityStatus('复制链接失败，请检查浏览器权限。', true); }
+  }
+}
+function applySharedPartFromUrl() {
+  const partName = new URLSearchParams(location.search).get('part');
+  if (!partName) return;
+  const part = partsData.find(item => item.name === partName);
+  if (part) selectPart(part);
+}
 function loadModel() {
   updateLoading(5, '正在加载机体模型…', '读取 assets/model.glb');
   new GLTFLoader().load('assets/model.glb', gltf => {
-    modelRoot = gltf.scene; scene.add(modelRoot); frameModel(modelRoot); registerModel(modelRoot); ui.status.textContent = '机体在线';
+    modelRoot = gltf.scene; scene.add(modelRoot); frameModel(modelRoot); registerModel(modelRoot); applySharedPartFromUrl(); ui.status.textContent = '机体在线';
     updateLoading(100, '机体档案已就绪', '点击任意已登记部件开始浏览'); setTimeout(() => ui.loading.classList.add('hidden'), 450);
   }, event => {
     const percent = event.total ? event.loaded / event.total * 100 : 45;
@@ -155,5 +294,8 @@ function animate() {
 canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('contextmenu', event => event.preventDefault());
 ui.autoRotate.addEventListener('click', () => { controls.autoRotate = !controls.autoRotate; ui.autoRotate.setAttribute('aria-pressed', String(controls.autoRotate)); ui.autoRotate.textContent = `自动旋转：${controls.autoRotate ? '开' : '关'}`; });
 ui.reset.addEventListener('click', clearSelection);
+ui.likeButton.addEventListener('click', toggleLike);
+ui.shareButton.addEventListener('click', shareCurrentView);
+ui.commentForm.addEventListener('submit', submitComment);
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
-buildPartsList(); loadModel(); animate();
+buildPartsList(); loadModel(); setupCommunity(); animate();
