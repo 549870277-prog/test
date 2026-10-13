@@ -1,0 +1,13 @@
+{
+  "name": "donghu-tingtao-guide",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "东湖听涛景区游览导览：景点介绍、路口指引、点赞评论与穷举法路线优化",
+  "scripts": {
+    "dev": "node tools/serve.mjs 5173",
+    "test": "node tools/test_core.mjs",
+    "seed": "node tools/gen_seed.mjs",
+    "inspect": "node tools/inspect_glb.mjs"
+  }
+}

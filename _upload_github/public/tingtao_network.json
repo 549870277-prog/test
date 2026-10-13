@@ -1,0 +1,467 @@
+{
+  "status": "SCHEMATIC_NOT_FOR_NAVIGATION",
+  "scale": 500,
+  "extent_m": [
+    862.6432015552285,
+    834.8961809495516
+  ],
+  "bbox_wgs84": [
+    114.3605,
+    30.564,
+    114.3695,
+    30.5715
+  ],
+  "axes_blender": {
+    "x": "east",
+    "y": "north",
+    "z": "up"
+  },
+  "axes_glb": {
+    "x": "east",
+    "y": "up",
+    "z": "south"
+  },
+  "nodes": {
+    "entry": {
+      "name": "梨园广场入口",
+      "xy": [
+        -403.32160077761426,
+        389.4480904747758
+      ],
+      "kind": "entry",
+      "model_position": [
+        -0.8066432015552285,
+        0.7788961809495517,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    },
+    "A": {
+      "name": "绿道分岔口",
+      "xy": [
+        -260,
+        245
+      ],
+      "kind": "junction",
+      "model_position": [
+        -0.52,
+        0.49,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    },
+    "p1": {
+      "name": "行吟阁",
+      "xy": [
+        100,
+        215
+      ],
+      "kind": "poi",
+      "minutes": 30,
+      "model_position": [
+        0.2,
+        0.43,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    },
+    "p2": {
+      "name": "碧潭观鱼",
+      "xy": [
+        -95,
+        120
+      ],
+      "kind": "poi",
+      "minutes": 20,
+      "model_position": [
+        -0.19,
+        0.24,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    },
+    "p3": {
+      "name": "长天楼",
+      "xy": [
+        160,
+        -125
+      ],
+      "kind": "poi",
+      "minutes": 20,
+      "model_position": [
+        0.32,
+        -0.25,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    },
+    "p4": {
+      "name": "落霞水榭",
+      "xy": [
+        175,
+        25
+      ],
+      "kind": "poi",
+      "minutes": 15,
+      "model_position": [
+        0.35000000000000003,
+        0.05,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    },
+    "p5": {
+      "name": "苍柏园",
+      "xy": [
+        -40,
+        -280
+      ],
+      "kind": "poi",
+      "minutes": 20,
+      "model_position": [
+        -0.08,
+        -0.56,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    },
+    "B": {
+      "name": "听涛路交汇口",
+      "xy": [
+        -120,
+        -95
+      ],
+      "kind": "junction",
+      "model_position": [
+        -0.24,
+        -0.19,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    },
+    "C": {
+      "name": "湖岸岔路口",
+      "xy": [
+        280,
+        -255
+      ],
+      "kind": "junction",
+      "model_position": [
+        0.56,
+        -0.51,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    },
+    "exit": {
+      "name": "听涛东大门",
+      "xy": [
+        403.32160077761426,
+        -389.4480904747758
+      ],
+      "kind": "entry",
+      "model_position": [
+        0.8066432015552285,
+        -0.7788961809495517,
+        0.006
+      ],
+      "coordinate_status": "schematic_not_measured"
+    }
+  },
+  "edges": [
+    {
+      "id": "road_01_entry_A",
+      "from": "entry",
+      "to": "A",
+      "estimated_length_m": 300,
+      "width_m": 3,
+      "polyline_schematic_m": [
+        [
+          -403.32160077761426,
+          389.4480904747758
+        ],
+        [
+          -340,
+          330
+        ],
+        [
+          -260,
+          245
+        ]
+      ]
+    },
+    {
+      "id": "road_02_A_p1",
+      "from": "A",
+      "to": "p1",
+      "estimated_length_m": 550,
+      "width_m": 3,
+      "polyline_schematic_m": [
+        [
+          -260,
+          245
+        ],
+        [
+          -150,
+          295
+        ],
+        [
+          0,
+          275
+        ],
+        [
+          100,
+          215
+        ]
+      ]
+    },
+    {
+      "id": "road_03_A_p2",
+      "from": "A",
+      "to": "p2",
+      "estimated_length_m": 400,
+      "width_m": 2,
+      "polyline_schematic_m": [
+        [
+          -260,
+          245
+        ],
+        [
+          -220,
+          170
+        ],
+        [
+          -155,
+          165
+        ],
+        [
+          -95,
+          120
+        ]
+      ]
+    },
+    {
+      "id": "road_04_p1_p2",
+      "from": "p1",
+      "to": "p2",
+      "estimated_length_m": 200,
+      "width_m": 2,
+      "polyline_schematic_m": [
+        [
+          100,
+          215
+        ],
+        [
+          40,
+          150
+        ],
+        [
+          -95,
+          120
+        ]
+      ]
+    },
+    {
+      "id": "road_05_p1_p3",
+      "from": "p1",
+      "to": "p3",
+      "estimated_length_m": 600,
+      "width_m": 3,
+      "polyline_schematic_m": [
+        [
+          100,
+          215
+        ],
+        [
+          140,
+          130
+        ],
+        [
+          120,
+          55
+        ],
+        [
+          120,
+          -35
+        ],
+        [
+          160,
+          -125
+        ]
+      ]
+    },
+    {
+      "id": "road_06_p2_p4",
+      "from": "p2",
+      "to": "p4",
+      "estimated_length_m": 350,
+      "width_m": 3,
+      "polyline_schematic_m": [
+        [
+          -95,
+          120
+        ],
+        [
+          -35,
+          60
+        ],
+        [
+          65,
+          65
+        ],
+        [
+          175,
+          25
+        ]
+      ]
+    },
+    {
+      "id": "road_07_p4_B",
+      "from": "p4",
+      "to": "B",
+      "estimated_length_m": 300,
+      "width_m": 3,
+      "polyline_schematic_m": [
+        [
+          175,
+          25
+        ],
+        [
+          80,
+          -15
+        ],
+        [
+          -25,
+          -45
+        ],
+        [
+          -120,
+          -95
+        ]
+      ]
+    },
+    {
+      "id": "road_08_B_p3",
+      "from": "B",
+      "to": "p3",
+      "estimated_length_m": 450,
+      "width_m": 3,
+      "polyline_schematic_m": [
+        [
+          -120,
+          -95
+        ],
+        [
+          -60,
+          -170
+        ],
+        [
+          55,
+          -185
+        ],
+        [
+          160,
+          -125
+        ]
+      ]
+    },
+    {
+      "id": "road_09_p3_p5",
+      "from": "p3",
+      "to": "p5",
+      "estimated_length_m": 350,
+      "width_m": 2,
+      "polyline_schematic_m": [
+        [
+          160,
+          -125
+        ],
+        [
+          100,
+          -230
+        ],
+        [
+          40,
+          -250
+        ],
+        [
+          -40,
+          -280
+        ]
+      ]
+    },
+    {
+      "id": "road_10_p5_exit",
+      "from": "p5",
+      "to": "exit",
+      "estimated_length_m": 400,
+      "width_m": 3,
+      "polyline_schematic_m": [
+        [
+          -40,
+          -280
+        ],
+        [
+          80,
+          -330
+        ],
+        [
+          230,
+          -345
+        ],
+        [
+          403.32160077761426,
+          -389.4480904747758
+        ]
+      ]
+    },
+    {
+      "id": "road_11_p3_C",
+      "from": "p3",
+      "to": "C",
+      "estimated_length_m": 250,
+      "width_m": 3,
+      "polyline_schematic_m": [
+        [
+          160,
+          -125
+        ],
+        [
+          240,
+          -170
+        ],
+        [
+          280,
+          -255
+        ]
+      ]
+    },
+    {
+      "id": "road_12_C_exit",
+      "from": "C",
+      "to": "exit",
+      "estimated_length_m": 300,
+      "width_m": 3,
+      "polyline_schematic_m": [
+        [
+          280,
+          -255
+        ],
+        [
+          320,
+          -325
+        ],
+        [
+          403.32160077761426,
+          -389.4480904747758
+        ]
+      ]
+    }
+  ],
+  "notes": [
+    "Only bounding coordinates supplied; interior geometry invented for concept visualization.",
+    "Road length attributes preserve user estimates; mesh lengths differ.",
+    "Marker and building sizes exaggerated for legibility.",
+    "Supplied area 1.2–1.5 km² contradicts coordinate bounding area about 0.72 km²."
+  ]
+}
